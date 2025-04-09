@@ -1,0 +1,205 @@
+from pygame import *
+
+
+class GameSprite(sprite.Sprite):
+    def __init__(self, filename, x, y, w, h, speed):
+        super().__init__()
+        self.image = transform.scale(image.load(filename), (w, h))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speed = speed
+        self.count = 0
+        self.left = False
+        self.right = False
+
+    def update(self, screen):
+        # Перерисовываем спрайт игрока
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
+
+class Player(GameSprite):
+    def __init__(self, filename, x, y, w, h, speed):
+        super().__init__(filename, x, y, w, h, speed)
+        self.y_velocity = 0
+        self.on_ground = True
+        self.gravity = 0.5
+        self.jump_power = -10  # Отрицательное значение — вверх
+
+    def update(self, screen):
+        keys = key.get_pressed()
+
+        # Движение влево
+        if keys[K_a] and self.rect.x > 0:
+            self.rect.x -= self.speed
+            self.left = True
+            self.right = False
+        # Движение вправо
+        elif keys[K_d] and self.rect.x < 1400 - self.rect.width:
+            self.rect.x += self.speed
+            self.left = False
+            self.right = True
+        else:
+            self.left = self.right = False
+
+        # Прыжок
+        if keys[K_SPACE] and self.on_ground:
+            self.y_velocity = self.jump_power
+            self.on_ground = False
+
+        # Применение гравитации
+        self.y_velocity += self.gravity
+        self.rect.y += self.y_velocity
+
+        # Проверка на "землю"
+        if self.rect.y >= 550:
+            self.rect.y = 550
+            self.y_velocity = 0
+            self.on_ground = True
+
+        # Перерисовываем игрока
+        super().update(screen)
+
+    def animation(self, screen):
+        # Если персонаж не двигается
+        if not self.left and not self.right:
+            # Показываем статичную картинку стоящего персонажа
+            screen.blit(self.image, (self.rect.x, self.rect.y))
+        elif self.left:
+            # Анимация бега влево
+            screen.blit(walk_left[self.count // 10], (self.rect.x, self.rect.y))
+            self.count += 1
+        elif self.right:
+            # Анимация бега вправо
+            screen.blit(walk_right[self.count // 10], (self.rect.x, self.rect.y))
+            self.count += 1
+        # Чтобы анимация работала корректно
+        if self.count + 1 >= len(walk_left) * 10:
+            self.count = 0
+
+
+window = display.set_mode((1400, 700))
+background = transform.scale(image.load("Aw.gif"), (1400, 800))
+player = Player("pngwing.com.png", 100, 550, 150, 150, 5)  # Начинаем на земле
+
+class Enemy(GameSprite):
+    direction = "Right"
+
+    def update(self, screen):
+        if self.direction == "Right":
+            self.rect.x += self.speed
+        if self.direction == "Left":
+            self.rect.x -= self.speed
+
+        if self.rect.x <= 450:
+            self.direction = "Right"
+        if self.rect.x >= 620:
+            self.direction = "Left"
+
+        super().update(screen)
+
+enemy = Enemy("2025-03--removebg-preview.png", 100, 550, 150, 150, 5)
+# Массивы изображений для анимации бега
+walk_left = [
+    image.load('pngwing.com_1___копия-removebg-preview.png'),
+    image.load('pngwing.com_2___копия-removebg-preview.png'),
+    image.load('pngwing.com_3___копия-removebg-preview.png'),
+    image.load('pngwing.com_4___копия-removebg-preview.png'),
+    image.load('pngwing.com_5___копия-removebg-preview.png'),
+    image.load('pngwing.com_6___копия-removebg-preview.png'),
+    image.load('pngwing.com_7___копия-removebg-preview.png'),
+    image.load('pngwing.com_8___копия-removebg-preview.png')
+]
+walk_right = [
+    image.load('pngwing.com_1-removebg-preview.png'),
+    image.load('pngwing.com_2-removebg-preview.png'),
+    image.load('pngwing.com_3-removebg-preview.png'),
+    image.load('pngwing.com_4-removebg-preview.png'),
+    image.load('pngwing.com_5-removebg-preview.png'),
+    image.load('pngwing.com_6-removebg-preview.png'),
+    image.load('pngwing.com_7-removebg-preview.png'),
+    image.load('pngwing.com_8-removebg-preview.png'),
+]
+
+
+
+# Преобразуем все изображения в нужный размер, чтобы избежать искажения
+walk_left = [transform.scale(img, (150, 150)) for img in walk_left]
+walk_right = [transform.scale(img, (150, 150)) for img in walk_right]
+
+class Enemy(GameSprite):
+    direction = "Right"
+
+    def update(self, screen):
+        if self.direction == "Right":
+            self.rect.x += self.speed
+        if self.direction == "Left":
+            self.rect.x -= self.speed
+
+        if self.rect.x <= 450:
+            self.direction = "Right"
+        if self.rect.x >= 620:
+            self.direction = "Left"
+
+        super().update(screen)
+
+enemy_left = [
+    image.load('green_enemy_1-removebg-preview.png'),
+    image.load('green_enemy_2-removebg-preview.png'),
+    image.load('green_enemy_3-removebg-preview.png'),
+    image.load('green_enemy_4-removebg-preview.png'),
+    image.load('green_enemy_5-removebg-preview.png'),
+    image.load('green_enemy_6-removebg-preview.png')
+]
+enemy_right = [
+    image.load('green_enemy_1_коп-removebg-preview.png'),
+    image.load('green_enemy_2_коп-removebg-preview.png'),
+    image.load('green_enemy_3_коп-removebg-preview.png'),
+    image.load('green_enemy_4_коп-removebg-preview.png'),
+    image.load('green_enemy_5_коп-removebg-preview.png'),
+    image.load('green_enemy_6_коп-removebg-preview.png'),
+
+]
+
+def animation(self, screen):
+    # Если персонаж не двигается
+    if not self.left and not self.right:
+        # Показываем статичную картинку стоящего персонажа
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+    elif self.left:
+        # Анимация бега влево
+        screen.blit(enemy_left[self.count // 10], (self.rect.x, self.rect.y))
+        self.count += 1
+    elif self.right:
+        # Анимация бега вправо
+        screen.blit(walk_right[self.count // 10], (self.rect.x, self.rect.y))
+        self.count += 1
+
+    # Чтобы анимация работала корректно
+    if self.count + 1 >= len(enemy_left) * 10:
+        self.count = 0
+
+
+timer = time.Clock()
+fps = 60
+
+# Основной цикл игры
+end_game = False
+while not end_game:
+    for e in event.get():
+        if e.type == QUIT or (e.type == KEYDOWN and e.key == K_ESCAPE):
+            end_game = True
+
+    # Обработка логики и отрисовка
+    window.blit(background, (0, 0))  # Рисуем фон
+
+    player.update(window)  # Обновляем позицию игрока
+    player.animation(window)  # Анимация игрока
+
+    enemy.update(window)  # Обновляем позицию врага
+    # Здесь нужно будет вызвать анимацию врага, если ты её реализуешь
+
+    display.update()  # Обновляем экран
+    timer.tick(fps)  # Поддержка заданного FPS
+
+quit()
